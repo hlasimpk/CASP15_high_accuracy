@@ -1,6 +1,6 @@
 # CASP15_high_accuracy
 
-This repository keeps the scripts used for high-accuracy assessment by the Lupas team in CASP14.
+This repository keeps the scripts used for high-accuracy assessment by the Rigden team in CASP15. This has been derived from the code repository created for CASP14 by Joana Pereira. 
 
 ## Content
 

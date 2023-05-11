@@ -4,7 +4,7 @@
 
 workdir=$1
 mol2process=$2
-lga='/ebio/abt1_share/software/LGA_package_src/lga'
+lga='/data1/opt/LGA_package_src/lga'
 
 cd $workdir
 
@@ -12,9 +12,9 @@ cd $workdir
 mkdir -p TMP
 
 # Calculate structural alignment for GDC_TS and GDC_HA
-$lga -3 -sda $mol2process > $mol2process.gdc_ts_ha
+ulimit -s unlimited; $lga -3 -sda $mol2process > $mol2process.gdc_ts_ha
 # Calculate structural alignment for GDC_SC
-$lga -3 -sda -gdc_sc $mol2process > $mol2process.gdc_sc
+ulimit -s unlimited; $lga -3 -sda -gdc_sc $mol2process > $mol2process.gdc_sc
 
 # calculate GDT_HA and GDT_TS
 cat $mol2process.gdc_ts_ha | grep "GDT PERCENT_AT" | awk '{ V=($3+$4+$6+$10)/4.0; printf "GDT_HA = %6.2f\n",V; }'

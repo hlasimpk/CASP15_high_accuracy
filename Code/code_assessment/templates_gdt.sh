@@ -4,7 +4,7 @@
 
 workdir=$1
 mol2process=$2
-lga='/ebio/abt1_share/software/LGA_package_src/lga'
+lga='/data1/opt/LGA_package_src/lga'
 
 cd $workdir
 
@@ -12,7 +12,7 @@ cd $workdir
 mkdir -p TMP
 
 # Align models based on the parameters in the LGA files in the casp tarfiles
-$lga -4  -ie  -o1  -sia  -d:4  -gdc_sc  -swap $mol2process > $mol2process.res
+ulimit -s unlimited; $lga -4  -ie  -o1  -sia  -d:4  -gdc_sc  -swap $mol2process > $mol2process.res
 # Use LGA alignment records to select residue-residue correspondences for GDT calculations
 cat MOL2/$mol2process > MOL2/$mol2process.copy
 grep "^LGA " $mol2process.res >> MOL2/$mol2process.copy

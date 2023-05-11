@@ -30,8 +30,9 @@ optionalNamed = parser.add_argument_group('optional arguments with defaults')
 # required inputs
 requiredNamed.add_argument('-casp', dest='which_casp', type=str, required=True, help='The casp version to analyse (e.g. CASP14, casp14 or 14')
 # optional inputs
-optionalNamed.add_argument('-tmp', dest='tmp_folder', type=str, default = '/tmp/', help='tmp folder (default: /tmp/')
+optionalNamed.add_argument('-tmp', dest='tmp_folder', type=str, default = '/tmp/', help='tmp folder (default: /tmp/)')
 optionalNamed.add_argument('-exclude_multidomain', dest='exclude_multidomain', type=str, default = 'False', help='Boolean statement to exclude multidomain targets. Will take only thos targets with "-D" (default: False')
+optionalNamed.add_argument('-prelim', dest='prelim', type=bool, default=False, help='Whether these are preliminary results or not (e.g. are group names available)')
 
 # Define inputs
 args = parser.parse_args()
@@ -271,6 +272,12 @@ def compute_scores(predictions_tables, predictions_llg, groups_names):
 
             #try:
             table = pd.read_csv(table_file, sep='\t', index_col=0)
+            try:
+                # Deal with renaming to columns in CASP15 data
+                table = table.rename(columns={'MP_clash' : 'MolPrb_clash', 'MP_rotout' : 'MolPrb_rotout', 'MP_ramout' : 'MolPrb_ramout', 'MP_ramfv' : 'MolPrb_ramfv', 'reLLG_const\n': 'reLLG_const' })
+            except:
+                pass
+
             table = add_llgs(table, curr_target_llg)
             
             if table_file.split('/')[-1].startswith('R'):
@@ -327,13 +334,42 @@ def compute_scores(predictions_tables, predictions_llg, groups_names):
     except:
         pass
 
-    all_parameters = set([i for name in groups_names for i in groups_names[name].keys() if 'MetaG' not in i])
+    try:
+        major_table['S_geom_casp14_2'] = (1/16)*(major_table['Z_LDDT']+major_table['Z_CAD_AA']+major_table['Z_SphGr']+2*major_table['Z_Model_SCscore']) + (1/10)*(major_table['Z_MolPrb_clash']+major_table['Z_Model_BBscore']+major_table['Z_Model_DipDiff']) + (1/4)*(major_table['Z_GDT_HA']+major_table['Z_QSE'])
+    except:
+        pass
 
-    print(' ... Adding groups data')
-    for i, parameter in enumerate(all_parameters):
-        print(' ... ... {}.{} : {}'.format(i, len(all_parameters), parameter))
-        major_table['GR_{}'.format(parameter)] = [groups_names[row['GR#']][parameter] if row['GR#'] in groups_names else np.nan for index, row in major_table.iterrows()]
+    try:
+        major_table['S_geom_casp14_4'] = (1/16)*(major_table['Z_LDDT']+major_table['Z_CAD_AA']+major_table['Z_SphGr']+4*major_table['Z_Model_SCscore']) + (1/10)*(major_table['Z_MolPrb_clash']+major_table['Z_Model_BBscore']+major_table['Z_Model_DipDiff']) + (1/4)*(major_table['Z_GDT_HA']+major_table['Z_QSE'])
+    except:
+        pass
+
+    try:
+        major_table['S_geom_casp15'] = (1/16)*(major_table['Z_LDDT']+major_table['Z_CAD_AA']+major_table['Z_SphGr']+major_table['Z_Model_SCscore']) + (1/10)*(major_table['Z_MolPrb_clash']+major_table['Z_Model_BBscore']+major_table['Z_Model_DipDiff']) + (1/6)*(major_table['Z_GDT_HA']+major_table['Z_QSE']+major_table['Z_reLLG_lddt'])
+    except:
+        pass
+
+    try:
+        major_table['S_geom_casp15_0.5'] = (1/16)*(major_table['Z_LDDT']+major_table['Z_CAD_AA']+major_table['Z_SphGr']+major_table['Z_Model_SCscore']) + (1/10)*(major_table['Z_MolPrb_clash']+major_table['Z_Model_BBscore']+major_table['Z_Model_DipDiff']) + (1/6)*(major_table['Z_GDT_HA']+major_table['Z_QSE']+(major_table['Z_reLLG_lddt']/4))
+    except:
+        pass
+
+    try:
+        major_table['S_geom_casp15_2'] = (1/16)*(major_table['Z_LDDT']+major_table['Z_CAD_AA']+major_table['Z_SphGr']+major_table['Z_Model_SCscore']) + (1/10)*(major_table['Z_MolPrb_clash']+major_table['Z_Model_BBscore']+major_table['Z_Model_DipDiff']) + (1/6)*(major_table['Z_GDT_HA']+major_table['Z_QSE']+2*major_table['Z_reLLG_lddt'])
+    except:
+        pass
+
+    if groups_names:
+        all_parameters = set([i for name in groups_names for i in groups_names[name].keys() if 'MetaG' not in i])
+
+        print(' ... Adding groups data')
+        for i, parameter in enumerate(all_parameters):
+            print(' ... ... {}.{} : {}'.format(i, len(all_parameters), parameter))
+            major_table['GR_{}'.format(parameter)] = [groups_names[row['GR#']][parameter] if row['GR#'] in groups_names else np.nan for index, row in major_table.iterrows()]
     
+    else:
+        print('No group names given')
+
     # save table to file
     major_table.to_csv('{}_Zscores_table.csv'.format(which_casp), sep='\t')
     
@@ -390,13 +426,18 @@ def combine_templates_data(templates_tables, templates_llg):
 
 # MAIN CODE
 
+#from analyse_casp import CASP_ASSESSMENT_DIR
+CASP_ASSESSMENT_DIR = "/data1/casp_assessment"
 data_folder = '{}/out_tables'.format(tmp_folder)
 predictions_tables, templates_tables = get_targets_individual_tables(data_folder)
 
-mr_folder = '../{}_MR'.format(which_casp)
+mr_folder = '{0}/{1}_MR'.format(CASP_ASSESSMENT_DIR, which_casp)
 predictions_llg, templates_llg = get_targets_mr_data(mr_folder)
 
-groups_names = get_groups_names()
+if args.prelim:
+    groups_names = None 
+else:
+    groups_names = get_groups_names()
 
 # 1. Compute major predictions table with z-scores for relevant CASP12 and CASP13 measures, 
 #    including the scores used in those competitions and add LLGs
@@ -404,6 +445,7 @@ groups_names = get_groups_names()
 predictions_table = compute_scores(predictions_tables, predictions_llg, groups_names)
 
 # # 2. Combine templates data into a unique table
+print(templates_tables)
 if templates_tables is not None and len(templates_tables) > 0:
     templates_table = combine_templates_data(templates_tables, templates_llg)
 

@@ -1,4 +1,4 @@
-# CASP14_high_accuracy
+# CASP15_high_accuracy
 
 This repository keeps the scripts used for high-accuracy assessment by the Lupas team in CASP14.
 
@@ -7,7 +7,7 @@ This repository keeps the scripts used for high-accuracy assessment by the Lupas
 There are 2 folders:
 
  - Code: Contains the python scripts used to compile and analyse data from the Prediction Center, as well as the jupyter notebook for data analysis and a script for the calculation of the DipDiff score given two structure of the same protein
- - Data: Contains the data compiled as well the scores calculated for individual targets, for CASP14, CASP13 and CASP12
+ - Data: Contains the data compiled as well the scores calculated for individual targets, for CASP15, CASP14, CASP13 and CASP12
 
 ## The main different scripts
 
@@ -38,15 +38,18 @@ Special python modules:
 
 Please edit the paths to these tools in the header of the script.
 
-ATTENTION: this script requires an assessor username and password. Replace USERNAME and PASSWORD by your assessor information in the following line: ```156   password_mgr.add_password(None, top_level_url, 'USERNAME', 'PASSWORD')```
+ATTENTION: this script requires an assessor username and password. Replace USERNAME and PASSWORD by your assessor information in the following line: ```174   password_mgr.add_password(None, top_level_url, 'USERNAME', 'PASSWORD')```
+You must also modify the output directory on line 32. 
 
 How to run: 
 
 ```
-ulimit -s unlimited; python3 analyse_casp.py -casp 14 -tmp /tmp/
+ulimit -s unlimited; python3 analyse_casp.py -casp 15 -tmp /tmp/
 ```
 
-The only input needed to run this script is a casp identifier (e.g. CASP14, casp14 or 14). Only CASP12, 13 or 14 are possible. For parallelization, it can also take the ```n_threads``` parameter. It will then download all targets and the models and all computations will be carried out in the tmp folder as it generates multiple files while runnning. Also, you have to set the memory limit to unlimited due to LGA.
+The only input needed to run this script is a casp identifier (e.g. CASP15, casp15 or 15). Only CASP12, 13, 14 or 15 are possible. For parallelization, it can also take the ```n_threads``` parameter. It will then download all targets and the models and all computations will be carried out in the tmp folder as it generates multiple files while runnning. Also, you have to set the memory limit to unlimited due to LGA.
+
+In CASP15 we calculated the SCWRL4 average absolute accuracy score to assess side chains. If you wish to calculate this score you can use the `-calculate_scwrl_scores` argument.
 
 
 ***2. ```assess_casp.py```***
